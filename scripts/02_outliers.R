@@ -2,140 +2,98 @@
 # Cargar paquetes --------------------------------------------------------------
 
 library(tidyverse)
+library(mice)
 
-
-# Funciones --------------------------------------------------------------------
-
-## Objetivo: Remover outliers o reemplazarlo por NA
-remove_outliers <- function(df, cols = names(df), replaceWithNa = FALSE) {
-  df_temp <- df
-  acum <- 0
-  for (col in cols) {
-    print(cat('Variable: ', col, fill = TRUE))
-    repeat { 
-      outliers <- boxplot.stats(df_temp[[col]])$out
-      print(cat('Outliers >> ', outliers, fill = TRUE))
-      total_outliers <- length(outliers)  
-      acum <- acum + total_outliers  
-      print(cat('TOTAL Outliers:', total_outliers, fill = TRUE ))
-      if( total_outliers > 0 ) {
-        
-        if(replaceWithNa == TRUE) {
-          # Reemplaza los outliers por NA
-          df_temp[df_temp[[col]] %in% outliers, col] = NA 
-        } else {
-          # Remueve la fila (observación) con el outlier
-          bigote_inferior <- boxplot.stats(df_temp[[col]])$stats[1]
-          bigote_superior <- boxplot.stats(df_temp[[col]])$stats[5]
-          
-          outliers_altos <- outliers[outliers > bigote_superior]
-          outliers_bajos <- outliers[outliers < bigote_inferior]
-          
-          if(length(outliers_altos) > 0) {
-            # Hay outliers por encima del bigote superior
-            limite_superior <- min(outliers_altos)
-            print(cat('Outliers Altos: ', sort(outliers_altos, decreasing = FALSE), fill = TRUE))
-            print(cat('LIMITE SUPERIOR: ', limite_superior, fill = TRUE))
-            df_temp <- df_temp %>% filter( !!sym(col) < limite_superior)   
-          }
-          
-          if(length(outliers_bajos) > 0) {
-            # Hay outliers por debajo del bigote inferior
-            print(cat('Outliers Bajos: ', sort(outliers_bajos, decreasing = FALSE), fill = TRUE))
-            #print(sort(outliers_bajos, decreasing = FALSE))
-            limite_inferior <- max(outliers_bajos)
-            print(cat('LIMITE INFERIOR: ', limite_inferior, fill = TRUE))
-            df_temp <- df_temp %>% filter( !!sym(col) > limite_inferior)   
-          }  
-        }
-      } else {
-        print(cat('TOTAL_ELIMINADOS:', acum, fill = TRUE))
-        break
-      }
-    }
-  }
-  df_temp
-}
-
-## Objetivo: Remover outliers o imputarlos con la media y mediana
-remove_outliers_v2 <- function(df, cols = names(df), replace = FALSE) {
-  df_temp <- df
-  acum <- 0
-  for (col in cols) {
-    print(cat('Variable: ', col, fill = TRUE))
-    repeat { 
-      outliers <- boxplot.stats(df_temp[[col]])$out
-      print(cat('Outliers >> ', outliers, fill = TRUE))
-      total_outliers <- length(outliers)  
-      acum <- acum + total_outliers  
-      print(cat('TOTAL Outliers:', total_outliers, fill = TRUE ))
-      mediana <- median(df_temp[[col]])
-      media <- mean(df_temp[[col]])
-      print(cat('MEDIANA: ', mediana, fill = TRUE))
-      print(cat('MEDIA: ', media, fill = TRUE))
-      if( total_outliers > 0 ) {
-        
-        # Remueve la fila (observación) con el outlier
-        bigote_inferior <- boxplot.stats(df_temp[[col]])$stats[1]
-        bigote_superior <- boxplot.stats(df_temp[[col]])$stats[5]
-        
-        outliers_altos <- outliers[outliers > bigote_superior]
-        outliers_bajos <- outliers[outliers < bigote_inferior]
-        
-        if(length(outliers_altos) > 0) {
-          # Hay outliers por encima del bigote superior
-          limite_superior <- min(outliers_altos)
-          print(cat('Outliers Altos: ', sort(outliers_altos, decreasing = FALSE), fill = TRUE))
-          print(cat('LIMITE SUPERIOR: ', limite_superior, fill = TRUE))
-          
-          if(replace == TRUE) {
-            # Reemplaza los outliers por la mediana
-            df_temp[df_temp[[col]] >= limite_superior, col] = mediana
-          } else {
-            df_temp <- df_temp %>% filter( !!sym(col) < limite_superior)     
-          }  
-        }
-        
-        if(length(outliers_bajos) > 0) {
-          # Hay outliers por debajo del bigote inferior
-          print(cat('Outliers Bajos: ', sort(outliers_bajos, decreasing = FALSE), fill = TRUE))
-          #print(sort(outliers_bajos, decreasing = FALSE))
-          limite_inferior <- max(outliers_bajos)
-          print(cat('LIMITE INFERIOR: ', limite_inferior, fill = TRUE))
-          if(replace == TRUE) {
-            # Reemplaza los outliers por la media
-            df_temp[df_temp[[col]] <= limite_inferior, col] = media
-          } else {
-            df_temp <- df_temp %>% filter( !!sym(col) > limite_inferior)   
-          }
-        }
-      } else {
-        print(cat('TOTAL_ELIMINADOS:', acum, fill = TRUE))
-        break
-      }
-    }
-  }
-  df_temp
-}
-
-## Objetivo: Esclar las columnas de un dataframe
-normalizar <- function(df, cols = names(df)) {
-  df_temp <- df
-  for (col in cols) {
-    df_temp[[col]] <- scale(x = df_temp[[col]], center = TRUE, scale = TRUE)
-  }
-  df_temp 
-}
-
-## Objetivo: Reemplazar nombre de columnas
-pretty_name_ratio_columns <- function(df_original, df_nombres) {
-  df_temp <- df_original
-  
-  for (i in 1:nrow(df_nombres)){
-    names(df_temp)[names(df_temp) == df_nombres[i,]$indicadores] <- df_nombres[i,]$nombre_indicadores
-  }
-  
-  df_temp
-}
+# Pre-requisitos: 
+# 1.- Ejecución de 01_consolidacion.R
+# 2.- Ejecución de 00_soporte.R
 
 # Análisis de outliers ---------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# ANTES 
+# ------------------------------------------------------------------------------
+# Visualizar los outliers en diagramas boxplots por cada indicador 
+for (indicador in analisis.prefix_indicadores) {
+  boxplot(data.analisis[[indicador]], horizontal = TRUE, main = indicador)
+}
+
+# Visualizar los outliers en diagramas boxplots en un único diagrama
+data.analisis %>% 
+  pivot_longer(cols = 6:22, names_to = "indicadores", values_to = "valores") %>% 
+  ggplot2::ggplot(data = ., aes(x = indicadores, y = valores, fill = valores)) +
+  geom_jitter(aes(color = indicadores), width=0.1,alpha=0.7) +
+  geom_boxplot(aes(color = indicadores), alpha=0.5) + 
+  xlab('Indices Financieros') + 
+  ylab('Valor') +
+  ggtitle('Ratios Financieros de IFIS') +
+  theme_minimal()
+
+# ------------------------------------------------------------------------------
+# REMOVER OUTLIERS 
+# ------------------------------------------------------------------------------
+
+## Estrategia 1: Remover los registros de cada outliers encontrado 
+outliers.v1 <- remove_outliers (data.analisis, analisis.prefix_indicadores, FALSE)
+
+graficar_boxplots(outliers.v1, analisis.prefix_indicadores)
+# Resumen: No quita todos los outliers ya que crea nuevos a medida que elimina observaciones.
+# Además como desventaja se tiene que se pierde demasiados datos. De 198 observaciones pasamos 
+# a 92 observaciones. 
+
+## Estrategia 2: Reemplazo de outliers por la Media y Mediana 
+outliers.v2 <- remove_outliers_v2 (data.analisis, analisis.prefix_indicadores, TRUE)
+
+graficar_boxplots(outliers.v2, analisis.prefix_indicadores)
+# Resumen: La ventaja es que no se pierden datos y se disminuyen considerablemente los 
+# outliers, sin embargo al reemplazarlos por la media y mediana los datos se mueven de lugar. 
+# Pierden su forma original.
+
+## Estrategia 3: Reemplazar los outliers por NA e imputarlos  
+outliers.v3 <- remove_outliers (data.analisis, analisis.prefix_indicadores, TRUE)
+
+sum(is.na(outliers.v3)) # Total de outliers
+colSums(is.na(outliers.v3)) # Total de outliers por variables / columna
+
+graficar_boxplots(outliers.v3, analisis.prefix_indicadores)
+
+### Estrategia 3.1: Imputación de los NA por la media 
+outliers.v3.1.imputed_data <- mice(outliers.v3[,names(outliers.v3) %in% analisis.prefix_indicadores],
+                     m = 1,
+                     maxit = 1, 
+                     method = "mean",
+                     seed = 2018,
+                     print=F)
+outliers.v3.1 <- mice::complete(outliers.v3.1.imputed_data)
+outliers.v3.1 %>% View()
+graficar_boxplots(outliers.v3.1, analisis.prefix_indicadores, 1:17)
+# Resumen: La desventaja es que al imputar con este método se crean nuevos outliers 
+
+### Estrategia 3.2: Imputación de los NA por regresión 
+outliers.v3.2.imputed_data  <- mice(outliers.v3[,names(outliers.v3) %in% analisis.prefix_indicadores],
+                     m = 1,
+                     maxit = 1, 
+                     method = "norm.predict",
+                     seed = 2018,
+                     print=F)
+outliers.v3.2 <- mice::complete(outliers.v3.2.imputed_data)
+graficar_boxplots(outliers.v3.2, analisis.prefix_indicadores, 1:17)
+# Resumen: Genera muy pocos outliers y conserva la forma original de los datos 
+
+### Estrategia 3.3: Imputación de los NA por regresión estocástica
+outliers.v3.3.imputed_data <- mice(outliers.v3[,names(outliers.v3) %in% analisis.prefix_indicadores],
+                      m = 1,
+                      maxit = 1, 
+                      method = "norm.nob",
+                      seed = 2018,
+                      print=F)
+outliers.v3.3 <- mice::complete(outliers.v3.3.imputed_data)
+graficar_boxplots(outliers.v3.3, analisis.prefix_indicadores, 1:17)
+# Resumen: Genera muy pocos outliers y conserva la forma original de los datos 
+
+
+# ------------------------------------------------------------------------------
+# NORMALIZACIÓN / ESCALAMIENTO DE VALORES
+# ------------------------------------------------------------------------------
+data.normalizada <- normalizar(outliers.v3.2, analisis.prefix_indicadores)
+
