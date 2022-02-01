@@ -8,46 +8,36 @@ library(tidyverse)
 
 setwd('D:/Cursos/Ciencia de Datos/FinDeSemana/Proyecto/Labs/01022022')
 
-file_path_bancos <- "data/Bancos.csv"
-file_path_mutualistas <- "data/Mutualistas.csv"
-file_path_publicas <- "data/Publicas.csv"
-file_path_coops1 <- "data/S1.csv"
-file_path_coops2 <- "data/S2.csv"
-file_path_coops3 <- "data/S3.csv"
+files_path <- c("data/Bancos.csv", "data/Mutualistas.csv", "data/Publicas.csv", "data/S1.csv", "data/S2.csv", "data/S3.csv")
+data <- c("BANCOS", "MUTUALISTAS", "PUBLICAS", "COOPERATIVAS", "COOPERATIVAS", "COOPERATIVAS")
+segmento <- c(NA, NA, NA, 1, 2, 3)
+data.base <- data.frame(data, files_path, segmento)
 
-print("1.- Carga de datos: Banco")
-if(file.exists(file_path_bancos)) {
-  data.bancos <- read.csv(file = file_path_bancos, sep = ";", dec = ".", header = TRUE)
-  print("Datos cargados: Bancos")
+
+for (archivo in data.base$files_path) {
+  ambito <- as.character(data.base %>% filter( files_path == archivo ) %>% select( data ))
+  segmento <- as.numeric(data.base %>% filter(files_path == archivo) %>% select(segmento))
+  print(cat("Carga de datos: ", ambito, fill = TRUE))
+  print(cat("Segmento: ", segmento, fill = TRUE))
+  print(cat("Archivo: ", archivo, fill = TRUE))
+  if(file.exists(archivo)) {
+    temporal <- read.csv(file = archivo, sep = ";", dec = ".", header = TRUE)  
+    temporal$tipo_ifi <- ambito
+    temporal$segmento <- segmento
+    
+    if(exists("data.ifis")) {
+      data.ifis <- rbind(data.ifis, temporal)
+    } else {
+      data.ifis = temporal[FALSE,]
+      data.ifis <- rbind(data.ifis, temporal)
+    }
+    
+    print(cat("Datos cargados: ", ambito, fill = TRUE))  
+  }
 }
 
-print("2.- Carga de datos: Mutualistas")
-if( file.exists(file_path_mutualistas) ) {
-  data_mutualistas <- read.csv(file = file_path_mutualistas, sep = ";", dec = ".", header = TRUE )
-  print("Datos cargados: Mutualistas")
-}
+data.ifis %>% filter( tipo_ifi == "COOPERATIVAS") %>% view()
 
-print("3.- Carga de datos: Publicas")
-if( file.exists(file_path_publicas) ) {
-  data_publicas <- read.csv(file = file_path_publicas, sep = ";", dec = ".", header = TRUE )
-  print("Datos cargados: Publicas")
-}
 
-print("4.- Carga de datos: Cooperativas Segmento 1")
-if( file.exists(file_path_coops1) ) {
-  data_coops1 <- read.csv(file = file_path_coops1, sep = ";", dec = ".", header = TRUE )
-  print("Datos cargados: Cooperativas Segmento 1")
-}
 
-print("5.- Carga de datos: Cooperativas Segmento 2")
-if( file.exists(file_path_coops2) ) {
-  data_coops2 <- read.csv(file = file_path_coops2, sep = ";", dec = ".", header = TRUE )
-  print("Datos cargados: Cooperativas Segmento 2")
-}
-
-print("6.- Carga de datos: Cooperativas Segmento 3")
-if( file.exists(file_path_coops3) ) {
-  data_coops3 <- read.csv(file = file_path_coops3, sep = ";", dec = ".", header = TRUE )
-  print("Datos cargados: Cooperativas Segmento 3")
-}
 
