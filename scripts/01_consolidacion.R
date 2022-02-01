@@ -40,7 +40,7 @@ for (archivo in data.base$files_path) {
 
 if(exists("data.ifis")){
   print("Transformacion General")
-  temporal <- data.ifis %>%
+  data.ifis <- data.ifis %>%
     pivot_longer(
       cols = starts_with("X"),
       names_to = "fecha_fin_mes",
@@ -73,7 +73,7 @@ if(exists("data.ifis")){
       !codigo_ifi %in% c(1000, 10003) & !is.na(codigo_ifi) 
     )
   print("Datos transformados")
-  glimpse(temporal)
+  glimpse(data.ifis)
 }
 
 
