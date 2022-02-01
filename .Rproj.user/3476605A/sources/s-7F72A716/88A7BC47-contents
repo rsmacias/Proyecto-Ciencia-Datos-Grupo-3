@@ -10,12 +10,44 @@ setwd('D:/Cursos/Ciencia de Datos/FinDeSemana/Proyecto/Labs/01022022')
 
 file_path_bancos <- "data/Bancos.csv"
 file_path_mutualistas <- "data/Mutualistas.csv"
-file_path_pulicas <- "data/Publicas.csv"
+file_path_publicas <- "data/Publicas.csv"
 file_path_coops1 <- "data/S1.csv"
 file_path_coops2 <- "data/S2.csv"
+file_path_coops3 <- "data/S3.csv"
 
 print("1.- Carga de datos: Banco")
 if(file.exists(file_path_bancos)) {
   data.bancos <- read.csv(file = file_path_bancos, sep = ";", dec = ".", header = TRUE)
   print("Datos cargados: Bancos")
 }
+
+print("2.- Carga de datos: Mutualistas")
+if( file.exists(file_path_mutualistas) ) {
+  data_mutualistas <- read.csv(file = file_path_mutualistas, sep = ";", dec = ".", header = TRUE )
+  print("Datos cargados: Mutualistas")
+}
+
+print("3.- Carga de datos: Publicas")
+if( file.exists(file_path_publicas) ) {
+  data_publicas <- read.csv(file = file_path_publicas, sep = ";", dec = ".", header = TRUE )
+  print("Datos cargados: Publicas")
+}
+
+print("4.- Carga de datos: Cooperativas Segmento 1")
+if( file.exists(file_path_coops1) ) {
+  data_coops1 <- read.csv(file = file_path_coops1, sep = ";", dec = ".", header = TRUE )
+  print("Datos cargados: Cooperativas Segmento 1")
+}
+
+print("5.- Carga de datos: Cooperativas Segmento 2")
+if( file.exists(file_path_coops2) ) {
+  data_coops2 <- read.csv(file = file_path_coops2, sep = ";", dec = ".", header = TRUE )
+  print("Datos cargados: Cooperativas Segmento 2")
+}
+
+print("6.- Carga de datos: Cooperativas Segmento 3")
+if( file.exists(file_path_coops3) ) {
+  data_coops3 <- read.csv(file = file_path_coops3, sep = ";", dec = ".", header = TRUE )
+  print("Datos cargados: Cooperativas Segmento 3")
+}
+
