@@ -151,7 +151,7 @@ pretty_name_ratio_columns <- function(df_original, df_nombres) {
   df_temp <- df_original
   
   for (i in 1:nrow(df_nombres)){
-    names(df_temp)[names(df_temp) == df_nombres[i,]$indicadores] <- df_nombres[i,]$nombre_indicadores
+    names(df_temp)[names(df_temp) == df_nombres[i,]$prefijo] <- df_nombres[i,]$nombre
   }
   
   df_temp
