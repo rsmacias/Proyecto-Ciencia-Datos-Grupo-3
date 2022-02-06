@@ -24,11 +24,11 @@ analisis.nombre_indicadores <- c('Indice_de_Capitalización_Neto',
                         'Margen_Intermediación_Estimado_sobre_Patrimonio_Promedio',
                         'Morosidad_Cartera_Total',
                         'Cobertura_Cartera_Problematica',
-                        'Activos_Productivos_sobre_Total_Activos',
-                        'Activos_Productivos_sobre_Pasivos_con_Costo',
+                        'Proporcion_Activos_Productivos_Netos',
+                        'Relacion_Pasivos_con_Costo_con_Productividad_Generada',
                         'Grado_de_Absorción',
-                        'Gastos_Operacional_Estimados_sobre_Activo_Total_Promedio',
-                        'Gastos_Personal_sobre_Activo_Total_Promedio',
+                        'Eficiencia_Operativa',
+                        'Eficiencia_Administrativa_de_Personal',
                         'ROE',
                         'ROA',
                         'Fondos_Disponibles_sobre_Total_Depósitos_Corto_Plazo',
@@ -141,7 +141,7 @@ if(exists("data.ifis")){
                         & ratio_LE_24 == 0 
                         & ratio_L_03 == 0
                 )
-  ifis_to_remove <- base::as_vector(temporal %>% select(codigo_ifi))
+  ifis_to_remove <- purrr::as_vector(temporal %>% select(codigo_ifi))
   data.analisis <- data.analisis %>% filter( !codigo_ifi %in% ifis_to_remove )
   
   # Creación de variables dummy para tipo de institución financiera y segmento de cooperativas
