@@ -287,6 +287,10 @@ fviz_cluster(object = data.normalizada.cluster.9.pam,
   theme(legend.position = "none")
 
 
+
+
+
+
 # Análisis de los resultados Kmeans --------------------------------------------
 
 print('2 - kmeans')
@@ -317,6 +321,20 @@ data.normalizada.cluster.9.kmeans$tot.withinss # inercia intra grupos (total)
 #       es menor con 9 cluster.
 
 
+data.normalizada.cluster.9.kmeans$cluster
+
+data.analisis.cluster <- cbind(data.analisis, cluster = data.normalizada.cluster.9.kmeans$cluster)
+data.analisis.cluster %>% View()
+
+
+clusplot(data.normalizada.acp.coord, data.normalizada.cluster.9.kmeans$cluster, color = TRUE, 
+          shade = TRUE, labels = 4, lines = 1 )
+
+
+plot(data.normalizada.acp.coord, 
+     col = data.normalizada.cluster.9.pam$cluster, 
+     cex = 2,      # Tamaño del símbolo
+     lwd = 2)
 
 
 
@@ -327,93 +345,5 @@ data.normalizada.cluster.9.kmeans$tot.withinss # inercia intra grupos (total)
 
 
 
-
-
-
-
-
-
-
-
-fviz_nbclust(x = data.normalizada.acp.coord, 
-             FUNcluster = kmeans, 
-             method = "wss", 
-             k.max = 15, 
-             diss = get_dist(data.normalizada.acp.coord, method = "euclidean"), 
-             nstart = 50)
-
-fviz_nbclust(x = data.normalizada.acp.coord, 
-             FUNcluster = kmeans, 
-             method = "gap_stat", 
-             k.max = 15, 
-             diss = get_dist(data.normalizada.acp.coord, method = "euclidean"), 
-             nstart = 50)
-
-fviz_nbclust(x = data.normalizada.acp.coord, 
-             FUNcluster = kmeans, 
-             method = "silhouette", 
-             k.max = 15, 
-             diss = get_dist(data.normalizada.acp.coord, method = "euclidean"), 
-             nstart = 50)
-
-
-
-fviz_nbclust(data.normalizada.acp.coord, kmeans,
-             method = "gap_stat")
-
-
-set.seed(80) # fijar semilla
-data.normalizada.kmeans <- kmeans(data.normalizada.acp$ind$coord, centers = 5)
-
-data.normalizada.kmeans$cluster
-
-fviz_cluster(object = data.normalizada.kmeans, 
-             data = data.normalizada.acp$ind$coord, 
-             show.clust.cent = TRUE,
-             ellipse.type = "euclid", 
-             star.plot = TRUE, 
-             repel = TRUE) +
-  labs(title = "Resultados clustering K-means") +
-  theme_bw() +
-  theme(legend.position = "none")
-
-
-
-
-
-
-
-
-
-
-set.seed(80) # fijar semilla
-df_general.km <- kmeans(df_general.orkmean, centers = 7) # Realizamos clustering
-
-head(df_general.km$cluster) # asignación observaciones a clusters
-
-df_general.km$totss # inercia total
-df_general.km$betweenss # inercia ínter grupos
-df_general.km$withinss # inercia intra grupos
-df_general.km$tot.withinss # inercia intra grupos (total)
-
-print(df_general.km)
-
-
-df_general.withclusters <- cbind(df_general, cluster = df_general.km$cluster)
-df_general.withclusters %>% View()
-
-
-fviz_cluster(object = df_general.km, data = df_general.orkmean, show.clust.cent = TRUE,
-             ellipse.type = "euclid", star.plot = TRUE, repel = TRUE) +
-  labs(title = "Resultados clustering K-means") +
-  theme_bw() +
-  theme(legend.position = "none")
-
-
-fviz_cluster(object = df_general.km, data = df_general.orkmean, show.clust.cent = TRUE,
-             ellipse.type = "t", star.plot = TRUE, repel = TRUE) +
-  labs(title = "Resultados clustering K-means") +
-  theme_bw() +
-  theme(legend.position = "none")
 
 
